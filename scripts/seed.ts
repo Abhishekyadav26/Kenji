@@ -33,21 +33,23 @@ import { normalize } from 'viem/ens';
 import { ENS_ADDRESSES, PARENT_NAME, RPC_URL } from '../src/config.js';
 import { fetchProfile } from '../src/ens.js';
 
+const registrationComponents = [
+  { name: 'label', type: 'string' },
+  { name: 'owner', type: 'address' },
+  { name: 'duration', type: 'uint256' },
+  { name: 'secret', type: 'bytes32' },
+  { name: 'resolver', type: 'address' },
+  { name: 'data', type: 'bytes[]' },
+  { name: 'reverseRecord', type: 'uint8' },
+  { name: 'referrer', type: 'bytes32' },
+] as const;
+
 const controllerAbi = [
   {
     type: 'function',
     name: 'makeCommitment',
     stateMutability: 'pure',
-    inputs: [
-      { name: 'name', type: 'string' },
-      { name: 'owner', type: 'address' },
-      { name: 'duration', type: 'uint256' },
-      { name: 'secret', type: 'bytes32' },
-      { name: 'resolver', type: 'address' },
-      { name: 'data', type: 'bytes[]' },
-      { name: 'reverseRecord', type: 'bool' },
-      { name: 'ownerControlledFuses', type: 'uint16' },
-    ],
+    inputs: [{ name: 'registration', type: 'tuple', components: [...registrationComponents] }],
     outputs: [{ name: '', type: 'bytes32' }],
   },
   {
@@ -71,16 +73,7 @@ const controllerAbi = [
     type: 'function',
     name: 'register',
     stateMutability: 'payable',
-    inputs: [
-      { name: 'name', type: 'string' },
-      { name: 'owner', type: 'address' },
-      { name: 'duration', type: 'uint256' },
-      { name: 'secret', type: 'bytes32' },
-      { name: 'resolver', type: 'address' },
-      { name: 'data', type: 'bytes[]' },
-      { name: 'reverseRecord', type: 'bool' },
-      { name: 'ownerControlledFuses', type: 'uint16' },
-    ],
+    inputs: [{ name: 'registration', type: 'tuple', components: [...registrationComponents] }],
     outputs: [],
   },
   {
@@ -187,8 +180,7 @@ async function main() {
 
   const parentNode = namehash(normalize(PARENT_NAME));
   const parentLabel = PARENT_NAME.split('.')[0]!;
-  const currentOwner = (await publicClient.readContract({
-    address: ENS_ADDRESSES.registry as Address,
+  const currentOwner = (await publicClient.readContract({    address: ENS_ADDRESSES.registry as Address,
     abi: registryAbi,
     functionName: 'owner',
     args: [parentNode],
@@ -206,7 +198,10 @@ async function main() {
     if (!available) {
       throw new Error(`Parent ${PARENT_NAME} is owned by someone else. Set PARENT_NAME to a name you own, or use an account that owns it.`);
     }
-    const duration = 31536000n; // 1 year
+    const duration = BigInt(
+      Number(process.env.SEED_DURATION_SECONDS || '7776000'),
+    ); // default 90 days (~0.00077 ETH rent) to fit faucet budgets; use 31536000 for 1y
+    console.log(`Registration duration: ${duration}s`);
     const secret = keccak256(toBytes(`kenji-${Date.now()}`));
     const price = (await publicClient.readContract({
       address: ENS_ADDRESSES.ethRegistrarController as Address,
@@ -215,12 +210,22 @@ async function main() {
       args: [parentLabel, duration],
     })) as { base: bigint; premium: bigint };
     const total = price.base + price.premium;
-    console.log(`Rent price: ${total} wei for 1y`);
+    console.log(`Rent price: ${total} wei for ${duration}s`);
+    const registration = {
+      label: parentLabel,
+      owner: account.address,
+      duration,
+      secret,
+      resolver: ENS_ADDRESSES.publicResolver as Address,
+      data: [] as `0x${string}`[],
+      reverseRecord: 0,
+      referrer: '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
+    };
     const commitment = (await publicClient.readContract({
       address: ENS_ADDRESSES.ethRegistrarController as Address,
       abi: controllerAbi,
       functionName: 'makeCommitment',
-      args: [parentLabel, account.address, duration, secret, ENS_ADDRESSES.publicResolver as Address, [], false, 0],
+      args: [registration],
     })) as `0x${string}`;
     console.log(`Committing ${commitment}...`);
     const commitHash = await wallet.writeContract({
@@ -236,7 +241,7 @@ async function main() {
       address: ENS_ADDRESSES.ethRegistrarController as Address,
       abi: controllerAbi,
       functionName: 'register',
-      args: [parentLabel, account.address, duration, secret, ENS_ADDRESSES.publicResolver as Address, [], false, 0],
+      args: [registration],
       value: total,
     });
     console.log(`register tx: ${regHash}`);

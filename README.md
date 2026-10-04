@@ -35,7 +35,9 @@ SEED_PRIVATE_KEY=0x... npm run seed -- --live
 npm run refresh   # rebuild index from live ENS records
 ```
 
-`scripts/seed.ts` registers the parent via the Sepolia `ETHRegistrarController` (commit + reveal), creates subnames with `ENSRegistry.setSubnodeRecord`, and sets text records with `PublicResolver.setText`. Re-running is idempotent.
+`scripts/seed.ts` registers the parent via the Sepolia `ETHRegistrarController` (commit + reveal, tuple-style `Registration` struct), creates subnames with `ENSRegistry.setSubnodeRecord`, and sets text records with `PublicResolver.setText`. Re-running is idempotent. Set `SEED_DURATION_SECONDS` (default `7776000` = 90 days, cheaper rent) if needed.
+
+> **Sepolia status note (Oct 2026):** permissionless `.eth` registration on Sepolia is currently non-functional network-wide — the canonical `ETHRegistrarController` (`0xfb3c…968`) is no longer in the `BaseRegistrar`'s authorized `controllers` mapping (verified on-chain; zero `.eth` registrations in ~600k blocks), so `register()` reverts with empty data. If you hit this, either wait for ENS to re-authorize a controller, or DNS-import a parent you own (any DNSSEC domain works permissionlessly via the Sepolia `DNSRegistrar`) and set `PARENT_NAME` accordingly — the finder works with any parent.
 
 Sepolia ENS contracts used: registry `0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e`, resolver `0xE99638b40E4Fff0129D56f03b55b6bbC4BBE49b5`, controller `0xfb3cE5D01e0f33f41DbB39035dB9745962F1f968`.
 
