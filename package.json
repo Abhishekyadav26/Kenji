@@ -1,0 +1,33 @@
+{
+  "name": "kenji-people-finder",
+  "version": "1.0.0",
+  "description": "Grounded ENS people-finder for Kenji's Tokyo builder community (Sepolia). Retrieval from live ENS text records, strict allowlist grounding, untrusted-bio handling.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --loader ts-node/esm src/server.ts",
+    "ask": "tsx src/cli.ts ask",
+    "refresh": "tsx src/cli.ts refresh",
+    "list": "tsx src/cli.ts list",
+    "seed": "tsx scripts/seed.ts",
+    "eval": "tsx eval/run.ts",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "viem": "^2.33.0",
+    "zod": "^3.23.8",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "@types/node": "^20.14.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "tsx": "^4.16.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

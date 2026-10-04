@@ -1,0 +1,80 @@
+[
+  {
+    "label": "A — strict (onlyAvailable=true, topK=3)",
+    "question": "Is anyone here good at Rust and free to mentor this month?",
+    "preferences": {
+      "onlyAvailable": true,
+      "topK": 3
+    },
+    "answer": {
+      "query": "Is anyone here good at Rust and free to mentor this month?",
+      "matches": [
+        {
+          "ens": "ren.kenji-builders.eth",
+          "reason": "skills include \"rust\" (rust, solana, mentoring); availability says free/available (Available — free this month for mentoring.)",
+          "evidence": "skills: rust, solana, mentoring | availability: Available — free this month for mentoring. | bio: Ren builds Solana programs with Rust and Anchor. Patient mentor, has t",
+          "score": 4.7
+        },
+        {
+          "ens": "yuki.kenji-builders.eth",
+          "reason": "skills include \"rust\" (rust, backend, mentoring); availability says free/available (Available — free to mentor this month, happy to help.)",
+          "evidence": "skills: rust, backend, mentoring | availability: Available — free to mentor this month, happy to help. | bio: Yuki is a Rust systems programmer in Tokyo. 4 years of Rus",
+          "score": 4.7
+        }
+      ],
+      "message": "Found 2 member(s) who fit."
+    }
+  },
+  {
+    "label": "B — include busy (onlyAvailable=false, topK=5)",
+    "question": "Is anyone here good at Rust and free to mentor this month?",
+    "preferences": {
+      "onlyAvailable": false,
+      "topK": 5
+    },
+    "answer": {
+      "query": "Is anyone here good at Rust and free to mentor this month?",
+      "matches": [
+        {
+          "ens": "ren.kenji-builders.eth",
+          "reason": "skills include \"rust\" (rust, solana, mentoring); availability says free/available (Available — free this month for mentoring.)",
+          "evidence": "skills: rust, solana, mentoring | availability: Available — free this month for mentoring. | bio: Ren builds Solana programs with Rust and Anchor. Patient mentor, has t",
+          "score": 4.7
+        },
+        {
+          "ens": "yuki.kenji-builders.eth",
+          "reason": "skills include \"rust\" (rust, backend, mentoring); availability says free/available (Available — free to mentor this month, happy to help.)",
+          "evidence": "skills: rust, backend, mentoring | availability: Available — free to mentor this month, happy to help. | bio: Yuki is a Rust systems programmer in Tokyo. 4 years of Rus",
+          "score": 4.7
+        },
+        {
+          "ens": "mika.kenji-builders.eth",
+          "reason": "skills include \"rust\" (rust, backend, mentoring)",
+          "evidence": "skills: rust, backend, mentoring | availability: Busy — not free this month, no time to mentor. | bio: Mika writes Rust for backend services and loves mentoring, but is",
+          "score": 3.2
+        }
+      ],
+      "message": "Found 3 member(s) who fit."
+    }
+  },
+  {
+    "label": "C — top 1 only (onlyAvailable=true, topK=1)",
+    "question": "Is anyone here good at Rust and free to mentor this month?",
+    "preferences": {
+      "onlyAvailable": true,
+      "topK": 1
+    },
+    "answer": {
+      "query": "Is anyone here good at Rust and free to mentor this month?",
+      "matches": [
+        {
+          "ens": "ren.kenji-builders.eth",
+          "reason": "skills include \"rust\" (rust, solana, mentoring); availability says free/available (Available — free this month for mentoring.)",
+          "evidence": "skills: rust, solana, mentoring | availability: Available — free this month for mentoring. | bio: Ren builds Solana programs with Rust and Anchor. Patient mentor, has t",
+          "score": 4.7
+        }
+      ],
+      "message": "Found 1 member(s) who fit."
+    }
+  }
+]
