@@ -2,7 +2,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { answerQuestion } from '../src/answer.js';
+import { answerQuestion, enforceAllowlist, SYSTEM_PROMPT } from '../src/answer.js';
+import { scoreProfiles } from '../src/retrieval.js';
 import { PreferencesSchema, TestCaseSchema } from '../src/schemas.js';
 import type { Profile } from '../src/schemas.js';
 
@@ -102,5 +103,37 @@ describe('kenji people-finder (8 scored cases)', () => {
     const relaxed = await answerQuestion(q, profiles, PreferencesSchema.parse({ onlyAvailable: false }));
     assert.equal(strict.matches.length, 0);
     assert.ok(relaxed.matches.some((m) => m.ens.toLowerCase() === 'hana.kenji-builders.eth'));
+  });
+
+  it('system prompt carries no profile text (profiles go in a data message)', async () => {
+    const profiles = await seedProfiles();
+    for (const p of profiles) {
+      assert.ok(!SYSTEM_PROMPT.includes(p.ens), `system prompt leaks ${p.ens}`);
+      assert.ok(!SYSTEM_PROMPT.includes(p.description.slice(0, 40)), 'system prompt leaks bio text');
+    }
+  });
+
+  it('allowlist gate rejects model-proposed outsiders', async () => {
+    const profiles = await seedProfiles();
+    const prefs = PreferencesSchema.parse({ onlyAvailable: true, topK: 3 });
+    const retrieved = scoreProfiles('Is anyone here good at Rust and free to mentor this month?', profiles, prefs);
+    assert.ok(retrieved.length > 0);
+    const gated = enforceAllowlist(
+      [
+        { ens: 'vitalik.kenji-builders.eth', reason: 'hallucinated mentor' },
+        { ens: retrieved[0].profile.ens.toUpperCase(), reason: 'real retrieved member' },
+      ],
+      retrieved,
+      prefs.topK,
+    );
+    assert.equal(gated.length, 1);
+    assert.equal(gated[0].ens, retrieved[0].profile.ens);
+  });
+
+  it('retrieval bounds candidates to topK', async () => {
+    const profiles = await seedProfiles();
+    const prefs = PreferencesSchema.parse({ onlyAvailable: false, topK: 1 });
+    const retrieved = scoreProfiles('Is anyone here good at Rust and free to mentor this month?', profiles, prefs);
+    assert.ok(retrieved.length <= 1);
   });
 });
